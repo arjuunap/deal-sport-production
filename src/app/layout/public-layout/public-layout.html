@@ -48,6 +48,8 @@
           <span class="lang-label">{{ currentLang() === 'en' ? 'AR' : 'EN' }}</span>
         </button>
 
+        
+
         <!-- Notification Bell -->
         <a routerLink="/notifications" class="notification-btn btn-icon">
           <span class="material-icons-round">notifications</span>
@@ -71,6 +73,7 @@
                 <span class="material-icons-round">bookmark</span>
                 {{ currentLang() === 'en' ? 'Saved Offers' : 'العروض المحفوظة' }}
               </a>
+              <a></a>
               <a routerLink="/followed-stores" (click)="closeDropdowns()" class="dropdown-item">
                 <span class="material-icons-round">favorite</span>
                 {{ currentLang() === 'en' ? 'Followed Stores' : 'المتاجر المتابعة' }}
