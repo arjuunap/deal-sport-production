@@ -10,7 +10,7 @@ export const adminGuard: CanActivateFn = (route, state) => {
     try {
       const user = JSON.parse(userJson);
       // Check if user is admin
-      if (user.role === 'admin' || user.role === 'superadmin' || state.url.startsWith('/admin')) {
+      if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN' || state.url.startsWith('/admin')) {
         return true;
       }
     } catch (e) {

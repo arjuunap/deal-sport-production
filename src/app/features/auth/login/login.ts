@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import {
@@ -34,7 +34,9 @@ export class LoginComponent implements OnInit {
 
   translationService = inject(TranslationService);
 
-  constructor(private authService: AuthService) {
+  constructor(private authService: AuthService,
+    private cdref:ChangeDetectorRef
+  ) {
 
   }
 
@@ -181,6 +183,7 @@ export class LoginComponent implements OnInit {
         this.loading = false;
         console.log(res);
         console.log('Token stored in localStorage:', localStorage.getItem('token'));
+        this.cdref.detectChanges();
       },
 
       error: (err) => {
@@ -188,7 +191,7 @@ export class LoginComponent implements OnInit {
         this.errorMessage =
           err.error?.message ||
           'Invalid email or password';
-
+        this.cdref.detectChanges();
       }
 
     });
@@ -227,34 +230,47 @@ export class LoginComponent implements OnInit {
 
   }
 
-  onAdminLoginSubmit(): void {
+ onAdminLoginSubmit(): void {
 
-    if (this.adminLoginForm.invalid) {
+  if (this.adminLoginForm.invalid) {
+    this.adminLoginForm.markAllAsTouched();
+    return;
+  }
 
-      this.adminLoginForm.markAllAsTouched();
+  this.loading = true;
+  this.errorMessage = '';
 
-      return;
+  const { email, password } = this.adminLoginForm.value;
 
-    }
+  this.authService.adminLogin({ email, password }).subscribe({
 
-    this.loading = true;
-
-    this.errorMessage = '';
-
-    console.log('ADMIN LOGIN');
-
-    console.log(this.adminLoginForm.value);
-
-    setTimeout(() => {
-
+    next: (res: any) => {
       this.loading = false;
 
-      alert('Admin Login Successful');
+      console.log(res);
+
+      // Store JWT token
+      localStorage.setItem('token', res.token);
+
+      // Optional: Store admin details
+      localStorage.setItem('user', JSON.stringify(res.user));
+
+      // alert('Admin Login Successful');
 
       this.router.navigate(['/admin']);
+    },
 
-    }, 1000);
+    error: (err) => {
+      this.loading = false;
 
-  }
+      console.error(err);
+
+      this.errorMessage =
+        err?.error?.message || 'Invalid email or password';
+    }
+
+  });
+
+}
 
 }

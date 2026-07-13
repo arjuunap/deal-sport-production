@@ -52,6 +52,8 @@
       <a routerLink="/offers" [queryParams]="{flash: true}" class="see-all-link">See All</a>
     </div>
 
+  
+
     <div class="deals-horizontal-scroll">
       <div class="deal-horizontal-card card" *ngFor="let deal of flashDeals()">
         <!-- Discount Badge -->
@@ -209,12 +211,18 @@
       </div>
     </div>
 
+    
+
     <ng-template #noDeals>
       <div class="empty-state">
         <span class="material-icons-round empty-state-icon">local_offer</span>
         <h3 class="empty-state-title">No offers found</h3>
         <p class="empty-state-desc">There are no active offers in Riyadh at this time. Try changing your city selection.</p>
         <!-- <p class="empty-state-desc">There are no active offers in {{ cityService.selectedCity() | translate:'name' }} at this time. Try changing your city selection.</p> -->
+      </div>
+
+      <div>
+
       </div>
     </ng-template>
   </section>

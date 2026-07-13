@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AdminLayout } from './admin-layout';
+import { CategoriesCrud } from './categories-crud';
 
-describe('AdminLayout', () => {
-  let component: AdminLayout;
-  let fixture: ComponentFixture<AdminLayout>;
+describe('CategoriesCrud', () => {
+  let component: CategoriesCrud;
+  let fixture: ComponentFixture<CategoriesCrud>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminLayout],
+      imports: [CategoriesCrud],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(AdminLayout);
+    fixture = TestBed.createComponent(CategoriesCrud);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

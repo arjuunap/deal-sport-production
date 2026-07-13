@@ -14,4 +14,12 @@ export class AuthService {
   userLogin(data: any) {
     return this.http.post(this.apiUrl + '/user/login', data);
   }
+
+  userRegister(data: any) {
+    return this.http.post(this.apiUrl + '/user/register', data);
+  }
+
+  adminLogin(data: any) {
+    return this.http.post(this.apiUrl + '/admin/login', data);
+  }
 }

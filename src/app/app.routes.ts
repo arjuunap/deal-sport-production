@@ -2,6 +2,13 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './features/home/home';
 import { PublicLayoutComponent } from './layout/public-layout/public-layout';
 import { LoginComponent } from './features/auth/login/login';
+import { AdminLayoutComponent } from './layout/admin-layout/admin-layout.component';
+import { DashboardComponent } from './features/admin/dashboard/dashboard.component';
+import { OfferListComponent } from './features/offers/offer-list/offer-list.component';
+import { CitiesCrudComponent } from './features/admin/cities-crud/cities-crud';
+import { CategoriesCrud } from './features/admin/categories-crud/categories-crud';
+import { StoresCrudComponent } from './features/admin/stores-crud/stores-crud.component';
+import { ProductsCrudComponent } from './features/admin/products-crud/products-crud.component';
 
 export const routes: Routes = [
 
@@ -18,8 +25,23 @@ export const routes: Routes = [
             {
                 path: 'login',
                 component: LoginComponent
-            }
+            },
+            { path: 'offers-list', component: OfferListComponent }
 
+        ]
+    },
+    {
+        path: 'admin',
+        component: AdminLayoutComponent,
+        children: [
+            {
+                path: '',
+                component: DashboardComponent
+            },
+            { path: 'cities', component: CitiesCrudComponent },
+            { path: 'categories', component: CategoriesCrud },
+            { path: 'stores', component: StoresCrudComponent },
+            { path: 'products', component: ProductsCrudComponent }
         ]
     },
 
