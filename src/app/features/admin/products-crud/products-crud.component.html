@@ -106,8 +106,14 @@
             <input type="text" formControlName="barcode" class="form-control">
           </div>
           <div class="form-group">
-            <label class="form-label">Primary Image URL</label>
-            <input type="text" formControlName="primary_image_url" class="form-control">
+            <label class="form-label">Product Image</label>
+            <div class="file-upload-box">
+              <input type="file" (change)="onFileSelected($event)" accept="image/*">
+            </div>
+            <div *ngIf="previewUrl" style="margin-top: 10px; display: flex; align-items: center; gap: 12px;">
+              <img [src]="previewUrl" style="max-height: 100px; border-radius: 8px; border: 1px solid var(--border);" alt="Preview">
+              <span class="text-muted" style="font-size: 12px;">Current Image Preview</span>
+            </div>
           </div>
           <div class="form-group">
             <label class="form-label">Category</label>
