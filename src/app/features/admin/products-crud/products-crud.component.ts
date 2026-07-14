@@ -34,6 +34,7 @@ export class ProductsCrudComponent implements OnInit {
   productForm!: FormGroup;
   isModalOpen = false;
   editingProductId: number | null = null;
+  previewUrl: string | null = null;
 
   ngOnInit(): void {
     this.loadProducts();
@@ -46,13 +47,13 @@ export class ProductsCrudComponent implements OnInit {
       brand_ar: ['', Validators.required],
       sku: ['', Validators.required],
       barcode: ['', Validators.required],
-      primary_image_url: ['', Validators.required],
       category_id: ['', Validators.required],
       unit: ['pcs', Validators.required],
       unit_size: [1, Validators.required],
       description_en: [''],
       description_ar: [''],
-      is_active: [true]
+      is_active: [true],
+      image: [null]
     });
   }
 
@@ -88,20 +89,20 @@ export class ProductsCrudComponent implements OnInit {
 
   openAddModal(): void {
     this.editingProductId = null;
-    this.productForm.reset({ is_active: true, unit: 'pcs', unit_size: 1 });
+    this.previewUrl = null;
+    this.productForm.reset({ is_active: true, unit: 'pcs', unit_size: 1, image: null });
     this.isModalOpen = true;
   }
 
   openEditModal(p: any): void {
     this.editingProductId = p.id;
     this.productForm.patchValue({
-      name_en: p.nameEn || p.name_en,
-      name_ar: p.nameAr || p.name_ar,
+      name_en: p.nameEn,
+      name_ar: p.nameAr,
       brand: p.brand,
       brand_ar: p.brandAr || p.brand_ar,
       sku: p.sku,
       barcode: p.barcode,
-      primary_image_url: p.primary_image_url,
       category_id: p.categoryId || p.category_id,
       unit: p.unit,
       unit_size: p.unitSize || p.unit_size,
@@ -109,79 +110,96 @@ export class ProductsCrudComponent implements OnInit {
       description_ar: p.descriptionAr || p.description_ar || '',
       is_active: p.is_active === 1 || p.isActive === 1 || p.is_active === true || p.isActive === true
     });
+
+    if (p.images && p.images.length > 0) {
+      this.previewUrl = this.filePath + p.images[0].imageUrl;
+    } else {
+      this.previewUrl = null;
+    }
+
     this.isModalOpen = true;
   }
 
   closeModal(): void {
     this.isModalOpen = false;
+    this.previewUrl = null;
+  }
+
+  onFileSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.productForm.patchValue({ image: file });
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.previewUrl = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   onSubmit(): void {
-    if (this.productForm.invalid) return;
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched();
+      return;
+    }
 
     const val = this.productForm.value;
-    const payload: any = {
-      name_en: val.name_en,
-      name_ar: val.name_ar,
+    const product: any = {
+      nameEn: val.name_en,
+      nameAr: val.name_ar,
       brand: val.brand,
-      brand_ar: val.brand_ar,
+      brandAr: val.brand_ar,
       sku: val.sku,
       barcode: val.barcode,
-      primary_image_url: val.primary_image_url,
-      category_id: Number(val.category_id),
+      categoryId: Number(val.category_id),
       unit: val.unit,
-      unit_size: Number(val.unit_size),
-      description_en: val.description_en || '',
-      description_ar: val.description_ar || '',
-      is_active: val.is_active ? 1 : 0
+      unitSize: Number(val.unit_size),
+      descriptionEn: val.description_en || '',
+      descriptionAr: val.description_ar || '',
+      active: val.is_active ? 1 : 0
     };
 
     if (this.editingProductId) {
-      payload.id = this.editingProductId;
-      this.productService.updateProduct(payload).subscribe({
-        next: (res) => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Updated!',
-            text: 'Product updated successfully.',
-            timer: 2000,
-            showConfirmButton: false
-          });
-          this.loadProducts();
-          this.closeModal();
-        },
-        error: (err) => {
-          console.error(err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to update product.'
-          });
-        }
-      });
-    } else {
-      this.productService.addProduct(payload).subscribe({
-        next: (res) => {
-          Swal.fire({
-            icon: 'success',
-            title: 'Added!',
-            text: 'Product added successfully.',
-            timer: 2000,
-            showConfirmButton: false
-          });
-          this.loadProducts();
-          this.closeModal();
-        },
-        error: (err) => {
-          console.error(err);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Failed to add product.'
-          });
-        }
-      });
+      product.id = this.editingProductId;
     }
+
+    const formData = new FormData();
+    formData.append(
+      'data',
+      new Blob([JSON.stringify(product)], {
+        type: 'application/json'
+      })
+    );
+
+    if (val.image) {
+      formData.append('file', val.image);
+    }
+
+    const request = this.editingProductId
+      ? this.productService.updateProduct(formData)
+      : this.productService.addProduct(formData);
+
+    request.subscribe({
+      next: () => {
+        Swal.fire({
+          icon: 'success',
+          title: this.editingProductId ? 'Updated!' : 'Added!',
+          text: this.editingProductId ? 'Product updated successfully.' : 'Product added successfully.',
+          timer: 2000,
+          showConfirmButton: false
+        });
+        this.loadProducts();
+        this.closeModal();
+      },
+      error: (err) => {
+        console.error(err);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: this.editingProductId ? 'Failed to update product.' : 'Failed to add product.'
+        });
+      }
+    });
   }
 
   deleteProduct(id: number): void {

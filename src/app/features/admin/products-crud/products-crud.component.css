@@ -174,3 +174,21 @@
 [dir="rtl"] .search-input {
   padding: 10px 42px 10px 16px;
 }
+
+.file-upload-box {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  text-align: center;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.file-upload-box:hover {
+  border-color: var(--primary);
+}
+
+.file-upload-box input[type="file"] {
+  width: 100%;
+}
