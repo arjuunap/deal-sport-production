@@ -12,6 +12,7 @@ import { ProductService } from '../../../core/services/product.service';
 
 import Swal from 'sweetalert2';
 import { environment } from '../../../environment/environment';
+import { BrandService } from '../../../core/services/brand.service';
 
 @Component({
   selector: 'app-products-crud',
@@ -23,8 +24,11 @@ import { environment } from '../../../environment/environment';
 export class ProductsCrudComponent implements OnInit {
   private fb = inject(FormBuilder);
   private categoryService = inject(CategoryService);
-  filePath= environment.filePath;
-  constructor(private productService: ProductService) { }
+  filePath = environment.filePath;
+
+  constructor(private productService: ProductService,
+    private brandService: BrandService
+  ) { }
 
   products = signal<any[]>([]);
   categories = signal<any[]>([]);
@@ -35,16 +39,17 @@ export class ProductsCrudComponent implements OnInit {
   isModalOpen = false;
   editingProductId: number | null = null;
   previewUrl: string | null = null;
+  brands: any = []
 
   ngOnInit(): void {
     this.loadProducts();
+    this.fetchBrands();
     this.categoryService.getCategories().subscribe(res => this.categories.set(res));
 
     this.productForm = this.fb.group({
       name_en: ['', Validators.required],
       name_ar: ['', Validators.required],
-      brand: ['', Validators.required],
-      brand_ar: ['', Validators.required],
+      brandId: [null, Validators.required],
       sku: ['', Validators.required],
       barcode: ['', Validators.required],
       category_id: ['', Validators.required],
@@ -72,7 +77,7 @@ export class ProductsCrudComponent implements OnInit {
       return;
     }
 
-    const filtered = this.products().filter(p => 
+    const filtered = this.products().filter(p =>
       (p.nameEn && p.nameEn.toLowerCase().includes(query)) ||
       (p.name_en && p.name_en.toLowerCase().includes(query)) ||
       (p.nameAr && p.nameAr.toLowerCase().includes(query)) ||
@@ -90,17 +95,17 @@ export class ProductsCrudComponent implements OnInit {
   openAddModal(): void {
     this.editingProductId = null;
     this.previewUrl = null;
-    this.productForm.reset({ is_active: true, unit: 'pcs', unit_size: 1, image: null });
+    this.productForm.reset({ is_active: true, unit: 'pcs', unit_size: 1, image: null, brandId: null });
     this.isModalOpen = true;
   }
 
   openEditModal(p: any): void {
+    console.log("p",p);
     this.editingProductId = p.id;
     this.productForm.patchValue({
       name_en: p.nameEn,
       name_ar: p.nameAr,
-      brand: p.brand,
-      brand_ar: p.brandAr || p.brand_ar,
+      brandId: p.brandId,
       sku: p.sku,
       barcode: p.barcode,
       category_id: p.categoryId || p.category_id,
@@ -118,6 +123,14 @@ export class ProductsCrudComponent implements OnInit {
     }
 
     this.isModalOpen = true;
+  }
+  fetchBrands() {
+    this.brandService.getBrands().subscribe({
+      next: (res: any[]) => {
+        this.brands = res
+        console.log(this.brands)
+      }
+    })
   }
 
   closeModal(): void {
@@ -144,11 +157,13 @@ export class ProductsCrudComponent implements OnInit {
     }
 
     const val = this.productForm.value;
+    const selectedBrand = this.brands.find((b: any) => b.id === Number(val.brandId));
     const product: any = {
       nameEn: val.name_en,
       nameAr: val.name_ar,
-      brand: val.brand,
-      brandAr: val.brand_ar,
+      brandId: Number(val.brandId),
+      brand: selectedBrand ? selectedBrand.nameEn : '',
+      brandAr: selectedBrand ? selectedBrand.nameAr : '',
       sku: val.sku,
       barcode: val.barcode,
       categoryId: Number(val.category_id),
@@ -158,6 +173,7 @@ export class ProductsCrudComponent implements OnInit {
       descriptionAr: val.description_ar || '',
       active: val.is_active ? 1 : 0
     };
+    console.log("pr",product)
 
     if (this.editingProductId) {
       product.id = this.editingProductId;
