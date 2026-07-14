@@ -2,12 +2,13 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnInit, 
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { CategoryService } from '../../../core/services/category.service';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
+import { environment } from '../../../environment/environment';
 
 @Component({
   selector: 'app-categories-crud',
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './categories-crud.html',
   styleUrl: './categories-crud.css',
 })
@@ -26,6 +27,13 @@ export class CategoriesCrud implements OnInit {
   catForm!: FormGroup;
   isModalOpen = false;
   editingCategoryId: number | null = null;
+  filePath = environment.filePath;
+  
+  // Tab state
+  activeTab: 'parent' | 'sub' = 'parent';
+  
+  // Filter for subcategories
+  selectedParentFilter: string = '';
 
   ngOnInit(): void {
     this.loadCategories();
@@ -45,16 +53,30 @@ export class CategoriesCrud implements OnInit {
   loadCategories(): void {
     this.categoryService.getCategories().subscribe(res => {
       this.categories = res;
-      console.log(res)
+      console.log(res);
 
       // Parent categories (parentId is null)
-      this.parentCategories = res.filter((c: { parentId: null; }) => c.parentId === null);
+      this.parentCategories = res.filter((c: any) => c.parentId === null);
 
-      // Subcategories (parentId is not null)
-      this.subCategories = res.filter((c: { parentId: null; }) => c.parentId !== null);
+      // Subcategories (parentId is not null) - map parentNameEn dynamically
+      this.subCategories = res.filter((c: any) => c.parentId !== null).map((sub: any) => {
+        const parent = this.parentCategories.find(p => p.id === sub.parentId);
+        return {
+          ...sub,
+          parentNameEn: parent ? parent.nameEn : 'Unknown'
+        };
+      });
 
       this.cd.detectChanges();
     });
+  }
+
+  getFilteredSubCategories() {
+    if (!this.selectedParentFilter) {
+      return this.subCategories;
+    }
+    const filterId = Number(this.selectedParentFilter);
+    return this.subCategories.filter(sub => sub.parentId === filterId);
   }
 
   openAddModal(): void {
@@ -71,7 +93,7 @@ export class CategoriesCrud implements OnInit {
       iconSlug: cat.iconSlug,
       parentId: cat.parentId || null,
       sortOrder: cat.sortOrder,
-      isActive: cat.isActive === 1
+      isActive: cat.is_active === 1 || cat.isActive === 1 || cat.is_active === true || cat.isActive === true
     });
     this.isModalOpen = true;
   }
@@ -84,95 +106,94 @@ export class CategoriesCrud implements OnInit {
     const file: File = event.target.files[0];
     if (file) {
       this.catForm.patchValue({ image: file });
-      // You can also add logic here to create a preview URL if needed
     }
   }
-  onSubmit() {
-    // 1. Check if the form is valid before doing anything
-    if (this.catForm.invalid) {
-      this.catForm.markAllAsTouched();
-      return;
+
+  onSubmit(): void {
+  if (this.catForm.invalid) {
+    this.catForm.markAllAsTouched();
+    return;
+  }
+
+  const formValue = this.catForm.value;
+
+  // Duplicate check
+  const isDuplicate = this.categories.some((cat: any) => {
+    if (this.editingCategoryId && cat.id === this.editingCategoryId) {
+      return false;
     }
 
-    const formValue = this.catForm.value;
-
-    // 2. NEW: Check for duplicates in your existing categories array
-    const isDuplicate = this.categories.some((cat: any) => {
-      const existingNameEn = cat.nameEn ? cat.nameEn.toLowerCase().trim() : '';
-      const existingNameAr = cat.nameAr ? cat.nameAr.toLowerCase().trim() : '';
-      const newNameEn = formValue.nameEn.toLowerCase().trim();
-      const newNameAr = formValue.nameAr.toLowerCase().trim();
-
-      return existingNameEn === newNameEn || existingNameAr === newNameAr;
-    });
-
-    if (isDuplicate) {
-      // 3. NEW: Show SweetAlert Warning for Duplicate
-      Swal.fire({
-        icon: 'warning',
-        title: 'Duplicate Category',
-        text: 'A category with this English or Arabic name already exists!',
-        confirmButtonColor: '#3085d6'
-      });
-      return; // Stop the submission from happening
-    }
-
-    // 4. Create FormData (This is your original logic)
-    const category = {
-      nameEn: formValue.nameEn,
-      nameAr: formValue.nameAr,
-      iconSlug: formValue.iconslug,
-      sortOrder: formValue.sortOrder,
-      active: formValue.isActive,
-      parentId: formValue.parentId ? Number(formValue.parentId) : null
-    };
-
-    const formData = new FormData();
-    formData.append(
-      'data',
-      new Blob([JSON.stringify(category)], { type: 'application/json' })
+    return (
+      cat.nameEn?.toLowerCase().trim() === formValue.nameEn.toLowerCase().trim() ||
+      cat.nameAr?.toLowerCase().trim() === formValue.nameAr.toLowerCase().trim()
     );
+  });
 
-    if (formValue.image) {
-      formData.append('file', formValue.image);
-    }
-
-    // 5. Submit to backend
-    this.categoryService.createCategory(formData).subscribe({
-      next: (response) => {
-        // NEW: Success SweetAlert
-        Swal.fire({
-          icon: 'success',
-          title: 'Success!',
-          text: 'Category created successfully.',
-          timer: 2000,
-          showConfirmButton: false
-        });
-        console.log(response)
-
-        // NEW: Add to local array so duplicate check keeps working without refreshing the page
-        this.categories.push(category);
-
-        this.catForm.reset({
-          sortOrder: 0,
-          isActive: true,
-          parentId: '',
-          image: null
-        });
-      },
-      error: (error) => {
-        console.error('Error Creating Category', error.error.message);
-
-        // NEW: Error SweetAlert
-        Swal.fire({
-          icon: 'error',
-          title: 'Submission Failed',
-          text: 'Something went wrong while creating the category. Please try again.',
-          confirmButtonColor: '#d33'
-        });
-      }
+  if (isDuplicate) {
+    Swal.fire({
+      icon: 'warning',
+      title: 'Duplicate Category',
+      text: 'A category with this English or Arabic name already exists!',
+      confirmButtonColor: '#3085d6'
     });
+    return;
   }
+
+  const category = {
+    nameEn: formValue.nameEn,
+    nameAr: formValue.nameAr,
+    iconSlug: formValue.iconSlug,
+    sortOrder: formValue.sortOrder,
+    active: formValue.isActive ? 1 : 0,
+    parentId: formValue.parentId ? Number(formValue.parentId) : null
+  };
+
+  const formData = new FormData();
+
+  // Send JSON as "data"
+  formData.append(
+    'data',
+    new Blob([JSON.stringify(category)], {
+      type: 'application/json'
+    })
+  );
+
+  // Send image separately as "file"
+  if (formValue.image) {
+    formData.append('file', formValue.image);
+  }
+
+  const request = this.editingCategoryId
+    ? this.categoryService.updateCategory(this.editingCategoryId, formData)
+    : this.categoryService.createCategory(formData);
+
+  request.subscribe({
+    next: () => {
+      Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: this.editingCategoryId
+          ? 'Category updated successfully.'
+          : 'Category created successfully.',
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      this.loadCategories();
+      this.closeModal();
+    },
+    error: (error) => {
+      console.error(error);
+
+      Swal.fire({
+        icon: 'error',
+        title: this.editingCategoryId ? 'Update Failed' : 'Creation Failed',
+        text: 'Something went wrong. Please try again.',
+        confirmButtonColor: '#d33'
+      });
+    }
+  });
+}
 
   deleteCategory(id: number): void {
     if (confirm('Are you sure you want to delete this category?')) {

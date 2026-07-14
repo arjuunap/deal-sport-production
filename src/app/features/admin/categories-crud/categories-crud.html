@@ -7,37 +7,59 @@
         </button>
     </div>
 
-    <div class="card table-wrapper">
+    <!-- Tabs Navigation -->
+    <div class="tabs-container">
+        <button class="tab-button" [class.active]="activeTab === 'parent'" (click)="activeTab = 'parent'">
+            <span class="material-icons-round">folder</span>
+            <span>Parent Categories ({{ parentCategories.length }})</span>
+        </button>
+        <button class="tab-button" [class.active]="activeTab === 'sub'" (click)="activeTab = 'sub'">
+            <span class="material-icons-round">folder_open</span>
+            <span>Subcategories ({{ subCategories.length }})</span>
+        </button>
+    </div>
+
+    <!-- Filter controls (Only for Subcategories tab) -->
+    <div class="filter-controls" *ngIf="activeTab === 'sub'">
+        <span class="filter-label">Filter by Parent:</span>
+        <select [(ngModel)]="selectedParentFilter" class="filter-select">
+            <option value="">All Parent Categories</option>
+            <option *ngFor="let parent of parentCategories" [value]="parent.id">
+                {{ parent.nameEn }}
+            </option>
+        </select>
+    </div>
+
+    <!-- Parent Categories Table -->
+    <div class="card table-wrapper" *ngIf="activeTab === 'parent'">
         <table class="admin-table">
             <thead>
                 <tr>
                     <th>ID</th>
+                    <th>Icon</th>
                     <th>Name (EN)</th>
                     <th>Name (AR)</th>
-                    <!-- <th>Icon Slug</th> -->
-                    <!-- <th>Parent ID</th> -->
                     <th>Sort Order</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <tr *ngFor="let cat of categories">
+                <tr *ngFor="let cat of parentCategories">
                     <td>{{ cat.id }}</td>
-                    <td>{{ cat.nameEn}}</td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <!-- <span class="material-icons-round text-primary">{{ cat.iconSlug || 'folder' }}</span> -->
+                            <img [src]="filePath + cat.imageUrl" class="category-image" alt="Category">
+                        </div>
+                    </td>
+                    <td>{{ cat.nameEn }}</td>
                     <td>{{ cat.nameAr }}</td>
-                    <!-- <td>
-                <div style="display:flex;align-items:center;gap:6px">
-                  <span class="material-icons-round text-primary">{{ cat.iconSlug }}</span>
-                  <code>{{ cat.iconSlug }}</code>
-                </div>
-              </td> -->
-                    <!-- <td>{{ cat.parentId || 'None (Root)' }}</td> -->
                     <td>{{ cat.sortOrder }}</td>
                     <td>
-                        <span class="badge" [class.badge-featured]="cat.is_active === 1"
-                            [class.badge-discount]="cat.is_active === 0">
-                            {{ cat.is_active === 1 ? 'Active' : 'Inactive' }}
+                        <span class="badge" [class.badge-featured]="cat.is_active === 1 || cat.isActive === 1 || cat.is_active === true || cat.isActive === true"
+                            [class.badge-discount]="cat.is_active === 0 || cat.isActive === 0 || cat.is_active === false || cat.isActive === false">
+                            {{ (cat.is_active === 1 || cat.isActive === 1 || cat.is_active === true || cat.isActive === true) ? 'Active' : 'Inactive' }}
                         </span>
                     </td>
                     <td>
@@ -47,6 +69,61 @@
                             <button class="btn-icon text-danger" (click)="deleteCategory(cat.id)" title="Delete"><span
                                     class="material-icons-round">delete</span></button>
                         </div>
+                    </td>
+                </tr>
+                <tr *ngIf="parentCategories.length === 0">
+                    <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        No parent categories found.
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Subcategories Table -->
+    <div class="card table-wrapper" *ngIf="activeTab === 'sub'">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name (EN)</th>
+                    <th>Name (AR)</th>
+                    <th>Parent Category</th>
+                    <th>Sort Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let cat of getFilteredSubCategories()">
+                    <td>{{ cat.id }}</td>
+                    <td>{{ cat.nameEn }}</td>
+                    <td>{{ cat.nameAr }}</td>
+                    <td>
+                        <span class="parent-badge">
+                            <span class="material-icons-round" style="font-size: 14px; margin-right: 4px;">folder</span>
+                            {{ cat.parentNameEn }}
+                        </span>
+                    </td>
+                    <td>{{ cat.sortOrder }}</td>
+                    <td>
+                        <span class="badge" [class.badge-featured]="cat.is_active === 1 || cat.isActive === 1 || cat.is_active === true || cat.isActive === true"
+                            [class.badge-discount]="cat.is_active === 0 || cat.isActive === 0 || cat.is_active === false || cat.isActive === false">
+                            {{ (cat.is_active === 1 || cat.isActive === 1 || cat.is_active === true || cat.isActive === true) ? 'Active' : 'Inactive' }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons-cell">
+                            <button class="btn-icon" (click)="openEditModal(cat)" title="Edit"><span
+                                    class="material-icons-round">edit</span></button>
+                            <button class="btn-icon text-danger" (click)="deleteCategory(cat.id)" title="Delete"><span
+                                    class="material-icons-round">delete</span></button>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="getFilteredSubCategories().length === 0">
+                    <td colspan="7" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        No subcategories found.
                     </td>
                 </tr>
             </tbody>

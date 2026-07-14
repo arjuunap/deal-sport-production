@@ -25,8 +25,8 @@ export class ProductService {
     return this.http.put<any[]>(this.apiUrl + '/update-product',body);
   }
 
-  deleteProduct() {
-    return this.http.delete<any[]>(this.apiUrl + '/delete-product');
+  deleteProduct(id: number) {
+    return this.http.delete<any>(this.apiUrl + '/delete-product/' + id);
   }
 
 

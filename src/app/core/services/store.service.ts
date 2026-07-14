@@ -19,7 +19,7 @@ export class StoreService {
   }
 
   updateStore(id: number, payload: any) {
-    return this.http.put(this.apiUrl + '/edit/' + id, payload);
+    return this.http.put(this.apiUrl + '/update-store/' + id, payload);
   }
 
   deleteStore(id: number) {

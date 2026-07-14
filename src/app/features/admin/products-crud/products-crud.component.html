@@ -47,7 +47,7 @@
               <button class="btn-icon" (click)="openEditModal(p)" title="Edit Product Info"><span class="material-icons-round">edit</span></button>
               <a [routerLink]="['/admin/products', p.id, 'details']" class="btn-icon text-primary" title="Technical Specs"><span class="material-icons-round">list_alt</span></a>
               <a [routerLink]="['/admin/products', p.id, 'images']" class="btn-icon text-primary" title="Product Image Gallery"><span class="material-icons-round">image</span></a>
-              <button class="btn-icon text-danger"  title="Delete Item"><span class="material-icons-round">delete</span></button>
+              <button class="btn-icon text-danger" (click)="deleteProduct(p.id)" title="Delete Item"><span class="material-icons-round">delete</span></button>
             </div>
           </td>
         </tr>
@@ -96,7 +96,7 @@
             <label class="form-label">Category</label>
             <select formControlName="category_id" class="form-control">
               <option value="" disabled>Select Category</option>
-              <option *ngFor="let cat of categories()" [value]="cat.id">{{ cat.name_en }}</option>
+              <option *ngFor="let cat of categories()" [value]="cat.id">{{ cat.nameEn || cat.name_en }}</option>
             </select>
           </div>
           <div class="form-group">

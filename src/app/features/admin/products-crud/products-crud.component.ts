@@ -10,6 +10,8 @@ import { ProductService } from '../../../core/services/product.service';
 // import { TranslatePipe } from '../../../shared/pipes/translate.pipe';
 // import { Product, Category } from '../../../core/models';
 
+import Swal from 'sweetalert2';
+
 @Component({
   selector: 'app-products-crud',
   standalone: true,
@@ -19,9 +21,7 @@ import { ProductService } from '../../../core/services/product.service';
 })
 export class ProductsCrudComponent implements OnInit {
   private fb = inject(FormBuilder);
-  // private productService = inject(ProductService);
   private categoryService = inject(CategoryService);
-  // private adminService = inject(AdminService);
   constructor(private productService : ProductService){}
 
   products = signal<any[]>([]);
@@ -68,19 +68,19 @@ export class ProductsCrudComponent implements OnInit {
   openEditModal(p: any): void {
     this.editingProductId = p.id;
     this.productForm.patchValue({
-      name_en: p.name_en,
-      name_ar: p.name_ar,
+      name_en: p.nameEn || p.name_en,
+      name_ar: p.nameAr || p.name_ar,
       brand: p.brand,
-      brand_ar: p.brand_ar,
+      brand_ar: p.brandAr || p.brand_ar,
       sku: p.sku,
       barcode: p.barcode,
       primary_image_url: p.primary_image_url,
-      category_id: p.category_id,
+      category_id: p.categoryId || p.category_id,
       unit: p.unit,
-      unit_size: p.unit_size,
-      description_en: p.description_en || '',
-      description_ar: p.description_ar || '',
-      is_active: p.is_active === 1
+      unit_size: p.unitSize || p.unit_size,
+      description_en: p.descriptionEn || p.description_en || '',
+      description_ar: p.descriptionAr || p.description_ar || '',
+      is_active: p.is_active === 1 || p.isActive === 1 || p.is_active === true || p.isActive === true
     });
     this.isModalOpen = true;
   }
@@ -93,7 +93,7 @@ export class ProductsCrudComponent implements OnInit {
     if (this.productForm.invalid) return;
 
     const val = this.productForm.value;
-    const payload = {
+    const payload: any = {
       name_en: val.name_en,
       name_ar: val.name_ar,
       brand: val.brand,
@@ -109,28 +109,77 @@ export class ProductsCrudComponent implements OnInit {
       is_active: val.is_active ? 1 : 0
     };
 
-    // if (this.editingProductId) {
-    //   this.productService.updateProduct(this.editingProductId, payload).subscribe(res => {
-    //     this.adminService.logAction('product', res.id, 'UPDATE', 1, payload);
-    //     this.loadProducts();
-    //     this.closeModal();
-    //   });
-    // } else {
-    //   this.productService.createProduct(payload).subscribe(res => {
-    //     this.adminService.logAction('product', res.id, 'CREATE', 1, payload);
-    //     this.loadProducts();
-    //     this.closeModal();
-    //   });
-    // }
+    if (this.editingProductId) {
+      payload.id = this.editingProductId;
+      this.productService.updateProduct(payload).subscribe({
+        next: (res) => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Updated!',
+            text: 'Product updated successfully.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadProducts();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to update product.'
+          });
+        }
+      });
+    } else {
+      this.productService.addProduct(payload).subscribe({
+        next: (res) => {
+          Swal.fire({
+            icon: 'success',
+            title: 'Added!',
+            text: 'Product added successfully.',
+            timer: 2000,
+            showConfirmButton: false
+          });
+          this.loadProducts();
+          this.closeModal();
+        },
+        error: (err) => {
+          console.error(err);
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: 'Failed to add product.'
+          });
+        }
+      });
+    }
   }
 
-  // deleteProduct(id: number): void {
-  //   if (confirm('Are you sure you want to delete this product? All active offers linking to this item will lose their product specifications.')) {
-  //     this.productService.deleteProduct(id).subscribe(() => {
-  //       this.adminService.logAction('product', id, 'DELETE', 1);
-  //       this.loadProducts();
-  //     });
-  //   }
-  // }
+  deleteProduct(id: number): void {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'All active offers linking to this item will lose their product specifications.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.productService.deleteProduct(id).subscribe({
+          next: () => {
+            Swal.fire('Deleted!', 'Product has been deleted.', 'success');
+            this.loadProducts();
+          },
+          error: (err) => {
+            console.error(err);
+            Swal.fire('Error', 'Failed to delete product.', 'error');
+          }
+        });
+      }
+    });
+  }
 }
 export { TranslationService } from '../../../core/services/translation.service';

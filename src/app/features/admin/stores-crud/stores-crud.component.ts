@@ -10,6 +10,7 @@ import { CategoryService } from '../../../core/services/category.service';
 // import { Store, City, Category } from '../../../core/models';
 import { TranslatePipe } from '../../../shared/pipes/translate-pipe';
 import { StoreService } from '../../../core/services/store.service';
+import { environment } from '../../../environment/environment';
 
 @Component({
   selector: 'app-stores-crud',
@@ -34,6 +35,8 @@ export class StoresCrudComponent implements OnInit {
   storeForm!: FormGroup;
   isModalOpen = false;
   editingStoreId: number | null = null;
+  filePath = environment.filePath;
+ 
 
   ngOnInit(): void {
     this.loadStores();
@@ -66,57 +69,82 @@ export class StoresCrudComponent implements OnInit {
     this.isModalOpen = true;
   }
 
-  openEditModal(store: any): void {
-    this.editingStoreId = store.id;
-    this.storeForm.patchValue({
-      name_en: store.name_en,
-      name_ar: store.name_ar,
-      logo_url: store.logo_url,
-      city_id: store.city_id,
-      category_id: store.category_id,
-      cr_number: store.cr_number || '',
-      vat_number: store.vat_number || '',
-      is_verified: store.is_verified === 1,
-      is_active: store.is_active === 1
-    });
-    this.isModalOpen = true;
-  }
+ openEditModal(store: any): void {
+  this.editingStoreId = store.id;
+
+  this.storeForm.patchValue({
+    name_en: store.nameEn,
+    name_ar: store.nameAr,
+    logo_url: store.logoUrl,
+    city_id: store.cityId,
+    category_id: store.categoryId,
+    cr_number: store.crNumber,
+    vat_number: store.vatNumber,
+    is_verified: store.verified,
+    is_active: store.active
+  });
+
+  this.isModalOpen = true;
+}
 
   closeModal(): void {
     this.isModalOpen = false;
   }
 
   onSubmit(): void {
-    if (this.storeForm.invalid) return;
-
-    const val = this.storeForm.value;
-    const payload = {
-      name_en: val.name_en,
-      name_ar: val.name_ar,
-      logo_url: val.logo_url,
-      city_id: Number(val.city_id),
-      category_id: Number(val.category_id),
-      cr_number: val.cr_number || '',
-      vat_number: val.vat_number || '',
-      is_verified: val.is_verified ? 1 : 0,
-      is_active: val.is_active ? 1 : 0
-    };
-
-    // if (this.editingStoreId) {
-    //   this.storeService.updateStore(this.editingStoreId, payload).subscribe(res => {
-    //     this.adminService.logAction('store', res.id, 'UPDATE', 1, payload);
-    //     this.loadStores();
-    //     this.closeModal();
-    //   });
-    // } else {
-    //   this.storeService.createStore(payload).subscribe(res => {
-    //     this.adminService.logAction('store', res.id, 'CREATE', 1, payload);
-    //     this.loadStores();
-    //     this.closeModal();
-    //   });
-    // }
+  if (this.storeForm.invalid) {
+    this.storeForm.markAllAsTouched();
+    return;
   }
 
+  const val = this.storeForm.value;
+
+  const payload = {
+    nameEn: val.name_en,
+    nameAr: val.name_ar,
+    logoUrl: val.logo_url,
+    cityId: Number(val.city_id),
+    categoryId: Number(val.category_id),
+    crNumber: val.cr_number,
+    vatNumber: val.vat_number,
+    verified: val.is_verified,
+    active: val.is_active
+  };
+
+  if (this.editingStoreId) {
+
+    this.storeService.updateStore(this.editingStoreId, payload).subscribe({
+      next: () => {
+        this.loadStores();
+        this.closeModal();
+        this.storeForm.reset({
+          is_active: true,
+          is_verified: false
+        });
+      },
+      error: (err) => {
+        console.error('Update Error:', err);
+      }
+    });
+
+  } else {
+
+    this.storeService.createStore(payload).subscribe({
+      next: () => {
+        this.loadStores();
+        this.closeModal();
+        this.storeForm.reset({
+          is_active: true,
+          is_verified: false
+        });
+      },
+      error: (err) => {
+        console.error('Create Error:', err);
+      }
+    });
+
+  }
+}
   // deleteStore(id: number): void {
   //   if (confirm('Are you sure you want to delete this store and all its branches?')) {
   //     this.storeService.deleteStore(id).subscribe(() => {

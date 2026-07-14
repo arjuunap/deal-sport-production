@@ -25,7 +25,7 @@
       <tbody>
         <tr *ngFor="let s of stores()">
   <td>
-    <img [src]="s.logoUrl" class="admin-table-logo" alt="logo">
+    <img [src]="filePath + s.logoUrl" class="admin-table-logo" alt="logo">
   </td>
 
   <td>{{ s.id }}</td>
