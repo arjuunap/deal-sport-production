@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 // import { ProductService } from '../../../core/services/product.service';
 import { CategoryService } from '../../../core/services/category.service';
@@ -16,7 +16,7 @@ import { environment } from '../../../environment/environment';
 @Component({
   selector: 'app-products-crud',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, TranslatePipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterLink, TranslatePipe],
   templateUrl: './products-crud.component.html',
   styleUrls: ['./products-crud.component.css']
 })
@@ -28,6 +28,8 @@ export class ProductsCrudComponent implements OnInit {
 
   products = signal<any[]>([]);
   categories = signal<any[]>([]);
+  filteredProducts = signal<any[]>([]);
+  searchQuery = '';
 
   productForm!: FormGroup;
   isModalOpen = false;
@@ -57,8 +59,31 @@ export class ProductsCrudComponent implements OnInit {
   loadProducts(): void {
     this.productService.getProducts().subscribe(res => {
       this.products.set(res);
+      this.applyFilter();
       console.log(this.products());
     });
+  }
+
+  applyFilter(): void {
+    const query = this.searchQuery.toLowerCase().trim();
+    if (!query) {
+      this.filteredProducts.set(this.products());
+      return;
+    }
+
+    const filtered = this.products().filter(p => 
+      (p.nameEn && p.nameEn.toLowerCase().includes(query)) ||
+      (p.name_en && p.name_en.toLowerCase().includes(query)) ||
+      (p.nameAr && p.nameAr.toLowerCase().includes(query)) ||
+      (p.name_ar && p.name_ar.toLowerCase().includes(query)) ||
+      (p.brand && p.brand.toLowerCase().includes(query)) ||
+      (p.brandAr && p.brandAr.toLowerCase().includes(query)) ||
+      (p.brand_ar && p.brand_ar.toLowerCase().includes(query)) ||
+      (p.sku && p.sku.toLowerCase().includes(query)) ||
+      (p.barcode && p.barcode.toLowerCase().includes(query)) ||
+      (p.id && p.id.toString().includes(query))
+    );
+    this.filteredProducts.set(filtered);
   }
 
   openAddModal(): void {

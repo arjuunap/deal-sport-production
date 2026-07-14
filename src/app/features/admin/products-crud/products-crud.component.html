@@ -6,6 +6,23 @@
       <span>Add Product</span>
     </button>
   </div>
+  <!-- Search and Stats Row -->
+  <div class="search-stats-row">
+    <div class="search-box-wrapper">
+      <span class="material-icons-round search-icon">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (ngModelChange)="applyFilter()"
+        placeholder="Search products by name, brand, SKU, UPC..." 
+        class="search-input"
+      />
+    </div>
+    <div class="stats-badge">
+      <span class="material-icons-round">analytics</span>
+      <span>Total Products: <strong>{{ products().length }}</strong></span>
+    </div>
+  </div>
 
   <!-- Table list -->
   <div class="card table-wrapper">
@@ -23,7 +40,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let p of products()">
+        <tr *ngFor="let p of filteredProducts()">
           <td>
             <img [src]="filePath + p.images[0].imageUrl" class="admin-table-product-img" alt="product">
           </td>
@@ -53,6 +70,11 @@
               <button class="btn-icon text-danger" (click)="deleteProduct(p.id)" title="Delete Item"><span
                   class="material-icons-round">delete</span></button>
             </div>
+          </td>
+        <tr *ngIf="filteredProducts().length === 0">
+          <td colspan="8" class="empty-table-cell">
+            <span class="material-icons-round empty-table-icon">shopping_bag</span>
+            <p>No products found matching your search.</p>
           </td>
         </tr>
       </tbody>
