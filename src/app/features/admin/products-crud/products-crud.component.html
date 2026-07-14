@@ -25,7 +25,7 @@
       <tbody>
         <tr *ngFor="let p of products()">
           <td>
-            <img [src]="p.primary_image_url" class="admin-table-product-img" alt="product">
+            <img [src]="filePath + p.images[0].imageUrl" class="admin-table-product-img" alt="product">
           </td>
           <td>{{ p.id }}</td>
           <td><code>{{ p.brand }}</code></td>
@@ -44,10 +44,14 @@
           </td>
           <td>
             <div class="action-buttons-cell">
-              <button class="btn-icon" (click)="openEditModal(p)" title="Edit Product Info"><span class="material-icons-round">edit</span></button>
-              <a [routerLink]="['/admin/products', p.id, 'details']" class="btn-icon text-primary" title="Technical Specs"><span class="material-icons-round">list_alt</span></a>
-              <a [routerLink]="['/admin/products', p.id, 'images']" class="btn-icon text-primary" title="Product Image Gallery"><span class="material-icons-round">image</span></a>
-              <button class="btn-icon text-danger" (click)="deleteProduct(p.id)" title="Delete Item"><span class="material-icons-round">delete</span></button>
+              <button class="btn-icon" (click)="openEditModal(p)" title="Edit Product Info"><span
+                  class="material-icons-round">edit</span></button>
+              <a [routerLink]="['/admin/products', p.id, 'details']" class="btn-icon text-primary"
+                title="Technical Specs"><span class="material-icons-round">list_alt</span></a>
+              <a [routerLink]="['/admin/products', p.id, 'images']" class="btn-icon text-primary"
+                title="Product Image Gallery"><span class="material-icons-round">image</span></a>
+              <button class="btn-icon text-danger" (click)="deleteProduct(p.id)" title="Delete Item"><span
+                  class="material-icons-round">delete</span></button>
             </div>
           </td>
         </tr>
@@ -60,7 +64,8 @@
     <div class="modal-content" (click)="$event.stopPropagation()">
       <div class="modal-header">
         <h3>{{ editingProductId ? 'Edit Product Catalogue Item' : 'Add Product' }}</h3>
-        <button class="btn-icon border-none" (click)="closeModal()"><span class="material-icons-round">close</span></button>
+        <button class="btn-icon border-none" (click)="closeModal()"><span
+            class="material-icons-round">close</span></button>
       </div>
       <div class="modal-body">
         <form [formGroup]="productForm" (submit)="onSubmit()" class="auth-form">

@@ -30,6 +30,7 @@ export class AdminLayoutComponent {
     { label_en: 'Dashboard', label_ar: 'الرئيسية', icon: 'dashboard', route: '/admin' },
     { label_en: 'Cities', label_ar: 'المدن', icon: 'place', route: '/admin/cities' },
     { label_en: 'Categories', label_ar: 'الأقسام', icon: 'category', route: '/admin/categories' },
+    { label_en: 'Brands', label_ar: 'الماركات', icon: 'loyalty', route: '/admin/brands' },
     { label_en: 'Stores', label_ar: 'المتاجر', icon: 'store', route: '/admin/stores' },
     { label_en: 'Products', label_ar: 'المنتجات', icon: 'shopping_bag', route: '/admin/products' },
     { label_en: 'Offers', label_ar: 'العروض', icon: 'local_offer', route: '/admin/offers' },

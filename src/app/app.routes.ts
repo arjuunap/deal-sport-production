@@ -9,6 +9,7 @@ import { CitiesCrudComponent } from './features/admin/cities-crud/cities-crud';
 import { CategoriesCrud } from './features/admin/categories-crud/categories-crud';
 import { StoresCrudComponent } from './features/admin/stores-crud/stores-crud.component';
 import { ProductsCrudComponent } from './features/admin/products-crud/products-crud.component';
+import { BrandsCrudComponent } from './features/admin/brands-crud/brands-crud.component';
 
 export const routes: Routes = [
 
@@ -41,7 +42,8 @@ export const routes: Routes = [
             { path: 'cities', component: CitiesCrudComponent },
             { path: 'categories', component: CategoriesCrud },
             { path: 'stores', component: StoresCrudComponent },
-            { path: 'products', component: ProductsCrudComponent }
+            { path: 'products', component: ProductsCrudComponent },
+            { path: 'brands', component: BrandsCrudComponent }
         ]
     },
 

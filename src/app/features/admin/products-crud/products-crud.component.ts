@@ -11,6 +11,7 @@ import { ProductService } from '../../../core/services/product.service';
 // import { Product, Category } from '../../../core/models';
 
 import Swal from 'sweetalert2';
+import { environment } from '../../../environment/environment';
 
 @Component({
   selector: 'app-products-crud',
@@ -22,11 +23,12 @@ import Swal from 'sweetalert2';
 export class ProductsCrudComponent implements OnInit {
   private fb = inject(FormBuilder);
   private categoryService = inject(CategoryService);
-  constructor(private productService : ProductService){}
+  filePath= environment.filePath;
+  constructor(private productService: ProductService) { }
 
   products = signal<any[]>([]);
   categories = signal<any[]>([]);
-  
+
   productForm!: FormGroup;
   isModalOpen = false;
   editingProductId: number | null = null;
